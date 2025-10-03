@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>ACIDA REVISTA</title>
+  <style>
+    :root{ --bg:#111; --pad:20px; }
+    html,body{ height:100%; margin:0; background:var(--bg); color:#fff; font-family:system-ui,Arial; }
+    #viewer {
+      box-sizing:border-box;
+      padding:var(--pad);
+      width:100%;
+      height:100vh;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      text-align:center;
+      background:var(--bg);
+    }
+    .page-canvas {
+      display:block;
+      margin:18px auto;
+      box-shadow:0 8px 30px rgba(0,0,0,0.6);
+      background:#fff;
+      max-width:100%;
+      height:auto;
+    }
+    .flip-wrapper { position:relative; display:inline-block; perspective:2000px; }
+    .flip-under, .flip-front { position:absolute; top:0; left:0; }
+    .flip-front { z-index:2; transform-style:preserve-3d; backface-visibility:hidden; }
+    .flip-under { z-index:1; }
+    canvas, .flip-wrapper { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script>
+  const PDF_URL = "./acida.pdf";
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@2.16.105/build/pdf.worker.min.js';
+
+  const viewer = document.getElementById('viewer');
+  let pdfDoc = null, totalPages = 0;
+  let currentPage = 1, mobileIndex = 0;
+  let fullCache = { pc:{}, mobile:{} }, splitCache = {};
+  let animating = false;
+
+  function isMobile() { return window.innerWidth <= 768; }
+
+  function copyCanvas(src) {
+    const out = document.createElement('canvas');
+    out.width = src.width; out.height = src.height;
+    out.style.width = src.style.width;
+    out.style.height = src.style.height;
+    out.className = 'page-canvas';
+    out.getContext('2d').drawImage(src, 0, 0);
+    return out;
+  }
+
+  async function renderFullCanvas(pageNum, forMobile=false) {
+    const cacheKey = forMobile ? 'mobile' : 'pc';
+    if (fullCache[cacheKey][pageNum]) return fullCache[cacheKey][pageNum];
+    const page = await pdfDoc.getPage(pageNum);
+    const baseViewport = page.getViewport({ scale: 1 });
+    const outputScale = window.devicePixelRatio || 1;
+    const targetCssHeight = Math.round(window.innerHeight * 0.95);
+    let scale = targetCssHeight / baseViewport.height;
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(viewport.width * outputScale);
+    canvas.height = Math.round(viewport.height * outputScale);
+    canvas.style.width = Math.round(viewport.width) + 'px';
+    canvas.style.height = Math.round(viewport.height) + 'px';
+    canvas.className = 'page-canvas';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(outputScale,0,0,outputScale,0,0);
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    fullCache[cacheKey][pageNum] = canvas;
+    return canvas;
+  }
+
+  function splitFullCanvas(fullCanvas) {
+    const cssFullW = parseFloat(fullCanvas.style.width);
+    const cssFullH = parseFloat(fullCanvas.style.height);
+    const cssHalfW = Math.floor(cssFullW / 2);
+    const fullDeviceW = fullCanvas.width, fullDeviceH = fullCanvas.height;
+    const leftDeviceW = Math.floor(fullDeviceW/2), rightDeviceW = fullDeviceW-leftDeviceW;
+    const left = document.createElement('canvas');
+    left.width = leftDeviceW; left.height = fullDeviceH;
+    left.style.width = cssHalfW+'px'; left.style.height = cssFullH+'px';
+    left.className='page-canvas';
+    left.getContext('2d').drawImage(fullCanvas,0,0,leftDeviceW,fullDeviceH,0,0,leftDeviceW,fullDeviceH);
+    const right=document.createElement('canvas');
+    right.width = rightDeviceW; right.height = fullDeviceH;
+    right.style.width=(cssFullW-cssHalfW)+'px'; right.style.height=cssFullH+'px';
+    right.className='page-canvas';
+    right.getContext('2d').drawImage(fullCanvas,leftDeviceW,0,rightDeviceW,fullDeviceH,0,0,rightDeviceW,fullDeviceH);
+    return { left, right };
+  }
+
+  async function ensureSplit(pageNum) {
+    if (splitCache[pageNum]) return splitCache[pageNum];
+    const full = await renderFullCanvas(pageNum,true);
+    const split = splitFullCanvas(full);
+    if (pageNum===1){
+      splitCache[1]={left:split.left}; // portada izquierda
+      splitCache["contratapa"]=split.right; // guardar derecha como contratapa
+      return splitCache[1];
+    }
+    splitCache[pageNum]=split;
+    return split;
+  }
+
+  async function renderAll() {
+    viewer.innerHTML='';
+    if (!pdfDoc) return;
+    if (isMobile()){
+      const split = await ensureSplit(currentPage);
+      const src = (mobileIndex===0)?split.left:split.right;
+      viewer.appendChild(copyCanvas(src));
+    } else {
+      for (let p=1;p<=totalPages;p++){
+        const full=await renderFullCanvas(p,false);
+        viewer.appendChild(copyCanvas(full));
+      }
+      if (splitCache["contratapa"]) viewer.appendChild(copyCanvas(splitCache["contratapa"]));
+    }
+  }
+
+  async function flipMobileTo(nextPage,nextIndex,backSrc,direction='next'){
+    if (animating) return; animating=true;
+    const currSplit=await ensureSplit(currentPage);
+    const nextSplit=(nextPage===currentPage)?currSplit:await ensureSplit(nextPage);
+    const frontSrc=(mobileIndex===0)?currSplit.left:currSplit.right;
+    const backCanvas=backSrc || ((nextIndex===0)?nextSplit.left:nextSplit.right);
+    const front=copyCanvas(frontSrc), back=copyCanvas(backCanvas);
+    const cssW=front.style.width, cssH=front.style.height;
+    const wrapper=document.createElement('div'); wrapper.className='flip-wrapper'; wrapper.style.width=cssW; wrapper.style.height=cssH;
+    const under=document.createElement('div'); under.className='flip-under'; under.style.width=cssW; under.style.height=cssH; under.appendChild(back);
+    const frontWrap=document.createElement('div'); frontWrap.className='flip-front'; frontWrap.style.width=cssW; frontWrap.style.height=cssH; frontWrap.appendChild(front);
+    viewer.innerHTML=''; viewer.appendChild(wrapper); wrapper.appendChild(under); wrapper.appendChild(frontWrap);
+    if (direction==='next'){
+      frontWrap.style.transformOrigin='left center';
+      gsap.to(frontWrap,{rotationY:-90,duration:0.55,ease:'power2.in',onComplete:()=>{
+        viewer.innerHTML=''; viewer.appendChild(copyCanvas(backCanvas));
+        currentPage=nextPage; mobileIndex=nextIndex; animating=false;
+      }});
+    } else {
+      frontWrap.style.transformOrigin='right center';
+      gsap.to(frontWrap,{rotationY:90,duration:0.55,ease:'power2.in',onComplete:()=>{
+        viewer.innerHTML=''; viewer.appendChild(copyCanvas(backCanvas));
+        currentPage=nextPage; mobileIndex=nextIndex; animating=false;
+      }});
+    }
+  }
+
+  async function goNext(){
+    if (!isMobile()||animating) return;
+    if (currentPage===1 && mobileIndex===0){ await flipMobileTo(2,0,null,'next'); return; }
+    if (currentPage===totalPages && mobileIndex===1 && splitCache["contratapa"]){
+      await flipMobileTo(totalPages,1,splitCache["contratapa"],'next'); return;
+    }
+    if (mobileIndex===0) await flipMobileTo(currentPage,1,null,'next');
+    else if (currentPage<totalPages) await flipMobileTo(currentPage+1,0,null,'next');
+  }
+
+  async function goPrev(){
+    if (!isMobile()||animating) return;
+    if (currentPage===totalPages && mobileIndex===1 && viewer.firstChild && viewer.firstChild.tagName==='CANVAS'
+        && viewer.firstChild.width===splitCache["contratapa"].width){
+      await flipMobileTo(totalPages,1,splitCache[totalPages].right,'prev'); return;
+    }
+    if (mobileIndex===1) await flipMobileTo(currentPage,0,null,'prev');
+    else if (currentPage>1) await flipMobileTo(currentPage-1,1,null,'prev');
+  }
+
+  viewer.addEventListener('click',(e)=>{
+    if (!isMobile()) return;
+    const mid=viewer.getBoundingClientRect().left+viewer.clientWidth/2;
+    if (e.clientX<mid) goPrev(); else goNext();
+  });
+  let startX=0;
+  viewer.addEventListener('touchstart',e=>{ if (e.touches[0]) startX=e.touches[0].clientX; },{passive:true});
+  viewer.addEventListener('touchend',e=>{
+    if (!isMobile()||!e.changedTouches[0]) return;
+    const dx=e.changedTouches[0].clientX-startX;
+    if (Math.abs(dx)>40){ if (dx<0) goNext(); else goPrev(); }
+  });
+
+  (async()=>{
+    pdfDoc=await pdfjsLib.getDocument(PDF_URL).promise;
+    totalPages=pdfDoc.numPages;
+    await renderAll();
+  })();
+  </script>
+</body>
+</html>
