@@ -66,8 +66,19 @@
     const page = await pdfDoc.getPage(pageNum);
     const baseViewport = page.getViewport({ scale: 1 });
     const outputScale = window.devicePixelRatio || 1;
+    // On mobile prefer scaling by width so the page looks more like desktop (wider than tall)
     const targetCssHeight = Math.round(window.innerHeight * 0.95);
-    let scale = targetCssHeight / baseViewport.height;
+    const targetCssWidth = Math.round(Math.min(window.innerWidth * 0.95, 900));
+    const scaleByHeight = targetCssHeight / baseViewport.height;
+    const scaleByWidth = targetCssWidth / baseViewport.width;
+    let scale;
+    if (forMobile || isMobile()) {
+      // prefer width-based scaling but don't overflow height
+      scale = Math.min(scaleByWidth, scaleByHeight);
+    } else {
+      // desktop: keep previous behavior (fit height)
+      scale = Math.min(scaleByHeight, scaleByWidth);
+    }
     const viewport = page.getViewport({ scale });
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(viewport.width * outputScale);
