@@ -653,8 +653,8 @@
       </div>
     </div>
     <div class="bandoneon-slideshow">
-      <img class="slide-img active" src="fotos/5.jpeg" alt="Facundo Ortiz — Bandoneón">
-      <img class="slide-img" src="fotos/3.jpeg" alt="Facundo Ortiz — Retrato">
+      <img class="slide-img active" src="5.jpeg" alt="Facundo Ortiz — Bandoneón">
+      <img class="slide-img" src="3.jpeg" alt="Facundo Ortiz — Retrato">
     </div>
   </div>
 </section>
@@ -669,7 +669,7 @@
       </div>
     </div>
     <div class="intro-banner">
-      <img src="fotos/2.jpeg" alt="Facundo Ortiz — Bandoneón">
+      <img src="2.jpeg" alt="Facundo Ortiz — Bandoneón">
     </div>
   </div>
 </section>
