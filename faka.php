@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facundo Ortiz — Bandoneón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e0b0a;
+    --bg-elevated:#161010;
+    --surface:#241417;
+    --surface-line:#3a2126;
+    --wine:#7a2130;
+    --wine-bright:#a3364a;
+    --gold:#c9a227;
+    --gold-soft:#e7cd7a;
+    --bone:#f4ece2;
+    --muted:#a99c8e;
+    --muted-dim:#786a5f;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--bg);
+    color:var(--bone);
+    font-family:'Fraunces', serif;
+    font-weight:400;
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  a{color:inherit;}
+  ::selection{background:var(--wine); color:var(--bone);}
+
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Big Shoulders Display', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    font-weight:800;
+    line-height:0.92;
+  }
+
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--gold-soft);
+    outline-offset:3px;
+  }
+
+  /* ---------------- NAV ---------------- */
+  header.site{
+    position:fixed;
+    top:0; left:0; right:0;
+    z-index:50;
+    background:linear-gradient(to bottom, rgba(14,11,10,0.92), rgba(14,11,10,0));
+    padding:22px 0 40px;
+  }
+  header.site .wrap{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .brand{
+    font-family:'Big Shoulders Display', sans-serif;
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    text-decoration:none;
+    z-index:101;
+  }
+  .brand span{color:var(--gold);}
+  nav.links{display:flex; gap:28px;}
+  nav.links a{
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    color:var(--muted);
+    transition:color .25s ease;
+  }
+  nav.links a:hover{color:var(--gold-soft);}
+
+  .nav-toggle {
+    display:none;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:8px;
+    z-index:101;
+    flex-direction:column;
+    gap:5px;
+  }
+  .nav-toggle span {
+    display:block;
+    width:22px;
+    height:2px;
+    background-color:var(--bone);
+    transition:transform .3s ease, opacity .3s ease;
+  }
+
+  @media (max-width:768px){
+    .nav-toggle {
+      display:flex;
+    }
+    nav.links {
+      position:fixed;
+      top:0;
+      right:-100%;
+      width:260px;
+      height:100vh;
+      background:rgba(22, 16, 16, 0.96);
+      backdrop-filter:blur(8px);
+      border-left:1px solid var(--surface-line);
+      flex-direction:column;
+      padding:100px 40px;
+      gap:24px;
+      transition:right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index:100;
+      box-shadow:-10px 0 30px rgba(0,0,0,0.5);
+    }
+    nav.links.open {
+      right:0;
+    }
+    nav.links a {
+      font-size:14px;
+    }
+    /* Hamburger animation */
+    .nav-toggle.active span:nth-child(1) {
+      transform:translateY(7px) rotate(45deg);
+    }
+    .nav-toggle.active span:nth-child(2) {
+      opacity:0;
+    }
+    .nav-toggle.active span:nth-child(3) {
+      transform:translateY(-7px) rotate(-45deg);
+    }
+  }
+
+  /* ---------------- HERO ---------------- */
+  .hero{
+    position:relative;
+    min-height:100svh;
+    display:flex;
+    align-items:center;
+    padding-top:90px;
+    padding-bottom:60px;
+    overflow:hidden;
+  }
+
+  .hero::before{
+    /* fondo de fuelle: franjas diagonales muy tenues */
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:repeating-linear-gradient(
+      115deg,
+      rgba(201,162,39,0.05) 0px,
+      rgba(201,162,39,0.05) 2px,
+      transparent 2px,
+      transparent 34px
+    );
+    mask-image:radial-gradient(ellipse 80% 60% at 70% 40%, black, transparent 75%);
+    pointer-events:none;
+  }
+
+  .hero-grid{
+    position:relative;
+    display:grid;
+    grid-template-columns:1.15fr 0.85fr;
+    gap:40px;
+    align-items:center;
+    width:100%;
+  }
+
+  .hero-eyebrow{margin-bottom:22px;}
+  .hero-eyebrow::before{content:"— ";}
+
+  .hero h1{
+    font-size:clamp(58px, 9vw, 128px);
+    color:var(--bone);
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--gold);
+  }
+
+  .hero-role{
+    margin-top:26px;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:400;
+    font-size:clamp(17px, 2vw, 22px);
+    color:var(--muted);
+    max-width:480px;
+  }
+
+  .hero-actions{
+    margin-top:40px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    text-decoration:none;
+    padding:15px 26px;
+    border-radius:2px;
+    transition:transform .25s ease, background .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .btn-solid{
+    background:var(--wine);
+    color:var(--bone);
+    border:1px solid var(--wine);
+  }
+  .btn-solid:hover{background:var(--wine-bright); transform:translateY(-2px);}
+  .btn-ghost{
+    background:transparent;
+    color:var(--bone);
+    border:1px solid var(--surface-line);
+  }
+  .btn-ghost:hover{border-color:var(--gold); color:var(--gold-soft); transform:translateY(-2px);}
+
+  /* bandoneon slideshow */
+  .bandoneon-slideshow {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 3/4.2;
+    margin: 0 auto;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--surface-line);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  }
+  .bandoneon-slideshow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 5px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .slide-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out, transform 6s ease-out;
+    z-index: 1;
+    transform: scale(1);
+  }
+  .slide-img.active {
+    opacity: 1;
+    z-index: 2;
+    transform: scale(1.05);
+  }
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr; text-align:left;}
+    .bandoneon-slideshow {
+      max-width: 320px;
+      margin-top: 30px;
+    }
+  }
+
+  /* ---------------- INTRO ---------------- */
+  .intro{
+    padding:100px 0 60px;
+    border-top:1px solid var(--surface-line);
+  }
+  .intro-grid{
+    display:grid;
+    grid-template-columns:200px 1fr;
+    gap:60px;
+    margin-bottom:40px;
+  }
+  .intro h2{
+    font-size:clamp(30px, 4vw, 42px);
+    color:var(--gold-soft);
+    align-self:start;
+  }
+  .intro p{
+    font-size:clamp(18px, 2.1vw, 22px);
+    color:var(--bone);
+    max-width:640px;
+    font-weight:400;
+  }
+  .intro p + p{margin-top:18px; color:var(--muted);}
+  
+  .intro-banner {
+    width:100%;
+    aspect-ratio:21/9;
+    border-radius:6px;
+    overflow:hidden;
+    border:1px solid var(--surface-line);
+    box-shadow:0 16px 40px rgba(0,0,0,0.5);
+  }
+  .intro-banner img {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center 30%;
+    display:block;
+    transition:transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .intro-banner:hover img {
+    transform:scale(1.03);
+  }
+
+  @media (max-width:768px){
+    .intro-grid{
+      grid-template-columns:1fr;
+      gap:20px;
+      margin-bottom:30px;
+    }
+    .intro-banner {
+      aspect-ratio:16/9;
+    }
+  }
+
+  /* ---------------- TIMELINE ---------------- */
+  .timeline-section{
+    padding:70px 0 40px;
+  }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:60px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .section-head h2{
+    font-size:clamp(36px, 5vw, 56px);
+    color:var(--bone);
+  }
+
+  .timeline{
+    position:relative;
+    padding-left:110px;
+  }
+  /* fuelle: linea vertical en zigzag hecha con SVG repetido */
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:52px;
+    top:6px;
+    bottom:6px;
+    width:16px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='40' viewBox='0 0 16 40'%3E%3Cpath d='M2 0 L14 10 L2 20 L14 30 L2 40' fill='none' stroke='%23c9a227' stroke-width='1.4' stroke-opacity='0.55'/%3E%3C/svg%3E");
+    background-repeat:repeat-y;
+    background-size:16px 40px;
+  }
+
+  .tl-item{
+    position:relative;
+    padding-bottom:56px;
+  }
+  .tl-item:last-child{padding-bottom:0;}
+
+  .tl-year{
+    position:absolute;
+    left:-146px;
+    right:auto;
+    top:-2px;
+    width:80px;
+    text-align:right;
+    font-family:'Space Mono', monospace;
+    font-size:15px;
+    color:var(--gold);
+    letter-spacing:0.02em;
+  }
+  .tl-year small{
+    display:block;
+    font-size:9px;
+    color:var(--muted-dim);
+    letter-spacing:0.1em;
+    margin-top:2px;
+  }
+
+  .tl-dot{
+    position:absolute;
+    left:-55px;
+    top:8px;
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:var(--bg);
+    border:2px solid var(--gold);
+    z-index:2;
+  }
+
+  .tl-content h3{
+    font-size:clamp(20px, 2.6vw, 26px);
+    color:var(--bone);
+    text-transform:none;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:0;
+    line-height:1.25;
+    margin-bottom:8px;
+  }
+  .tl-content h3 b{
+    color:var(--gold-soft);
+    font-weight:600;
+  }
+  .tl-content p{
+    color:var(--muted);
+    font-size:16px;
+    max-width:560px;
+  }
+
+  @media (max-width:640px){
+    .timeline{padding-left:70px;}
+    .timeline::before{left:24px;}
+    .tl-year{
+      left:-114px;
+      right:auto;
+      width:60px;
+      font-size:12px;
+    }
+    .tl-dot{
+      left:-43px;
+    }
+  }
+
+  /* ---------------- ACTUALIDAD / CARDS ---------------- */
+  .now-section{
+    padding:80px 0;
+    border-top:1px solid var(--surface-line);
+    border-bottom:1px solid var(--surface-line);
+    background:var(--bg-elevated);
+  }
+  .now-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    margin-top:50px;
+  }
+  .now-card{
+    background:var(--surface);
+    border:1px solid var(--surface-line);
+    padding:34px 30px;
+    border-radius:2px;
+    transition:border-color .3s ease, transform .3s ease;
+  }
+  .now-card:hover{border-color:var(--gold); transform:translateY(-4px);}
+  .now-card .eyebrow{display:block; margin-bottom:14px;}
+  .now-card h3{
+    font-family:'Fraunces', serif;
+    text-transform:none;
+    font-weight:600;
+    font-size:24px;
+    color:var(--bone);
+    margin-bottom:12px;
+    line-height:1.3;
+  }
+  .now-card p{color:var(--muted); font-size:16px;}
+
+  @media (max-width:700px){
+    .now-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------------- VIDEOS ---------------- */
+  .videos-section{padding:90px 0;}
+  .video-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+    margin-top:50px;
+  }
+  .video-card{
+    background:var(--surface);
+    border:1px solid var(--surface-line);
+    overflow:hidden;
+    border-radius:2px;
+    text-decoration:none;
+    display:block;
+    transition:transform .3s ease, border-color .3s ease;
+  }
+  .video-card:hover{transform:translateY(-4px); border-color:var(--gold);}
+  .video-thumb{
+    aspect-ratio:16/9;
+    background:
+      repeating-linear-gradient(120deg, rgba(201,162,39,0.06) 0 2px, transparent 2px 30px),
+      linear-gradient(160deg, var(--wine) 0%, var(--bg-elevated) 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .play-btn{
+    width:56px; height:56px;
+    border-radius:50%;
+    background:rgba(244,236,226,0.12);
+    border:1.5px solid var(--gold-soft);
+    display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(2px);
+  }
+  .play-btn::after{
+    content:"";
+    border-style:solid;
+    border-width:9px 0 9px 14px;
+    border-color:transparent transparent transparent var(--gold-soft);
+    margin-left:4px;
+  }
+  .video-meta{padding:18px 20px 22px;}
+  .video-meta .eyebrow{font-size:10px;}
+  .video-meta h3{
+    font-family:'Fraunces', serif;
+    text-transform:none;
+    font-weight:500;
+    font-size:18px;
+    color:var(--bone);
+    margin-top:8px;
+    letter-spacing:0;
+  }
+
+  @media (max-width:800px){
+    .video-grid{grid-template-columns:1fr;}
+  }
+
+  .videos-note{
+    margin-top:28px;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--muted-dim);
+    line-height:1.7;
+  }
+
+  /* ---------------- CONTACT ---------------- */
+  .contact-section{
+    padding:110px 0 90px;
+    border-top:1px solid var(--surface-line);
+    position:relative;
+    overflow:hidden;
+  }
+  .contact-section::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:repeating-linear-gradient(
+      -115deg,
+      rgba(122,33,48,0.14) 0px,
+      rgba(122,33,48,0.14) 2px,
+      transparent 2px,
+      transparent 34px
+    );
+    mask-image:radial-gradient(ellipse 70% 60% at 20% 50%, black, transparent 75%);
+    pointer-events:none;
+  }
+  .contact-inner{
+    position:relative;
+    max-width:640px;
+  }
+  .contact-section h2{
+    font-size:clamp(38px, 6vw, 70px);
+    color:var(--bone);
+    margin-bottom:24px;
+  }
+  .contact-section h2 em{font-style:normal; color:var(--gold);}
+  .contact-section p{
+    color:var(--muted);
+    font-size:18px;
+    max-width:480px;
+    margin-bottom:36px;
+  }
+
+  footer{
+    padding:34px 0;
+    border-top:1px solid var(--surface-line);
+  }
+  footer .wrap{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  footer p{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color:var(--muted-dim);
+    letter-spacing:0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a href="#top" class="brand">Facundo <span>Ortiz</span></a>
+    <button class="nav-toggle" aria-label="Abrir menú">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <nav class="links">
+      <a href="#trayectoria">Trayectoria</a>
+      <a href="#actualidad">Actualidad</a>
+      <a href="#escucha">Escuchá</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow hero-eyebrow">Bandoneón · Buenos Aires</span>
+      <h1>Facundo<br><em>Ortiz</em></h1>
+      <p class="hero-role">Bandoneonista, arreglador y docente. Formado en el linaje de los grandes maestros del tango porteño — hoy lleva ese oficio a las milongas, al aula y al estudio de grabación.</p>
+      <div class="hero-actions">
+        <a href="#escucha" class="btn btn-solid">Escuchá su música</a>
+        <a href="#contacto" class="btn btn-ghost">Contacto</a>
+      </div>
+    </div>
+    <div class="bandoneon-slideshow">
+      <img class="slide-img active" src="fotos/5.jpeg" alt="Facundo Ortiz — Bandoneón">
+      <img class="slide-img" src="fotos/3.jpeg" alt="Facundo Ortiz — Retrato">
+    </div>
+  </div>
+</section>
+
+<section class="intro">
+  <div class="wrap">
+    <div class="intro-grid">
+      <h2>Sobre<br>él</h2>
+      <div>
+        <p>Facundo Ortiz empezó en la guitarra a los 12 años con Antonio Bressi, y a los 14 encontró su instrumento definitivo: el bandoneón, de la mano de Marcos Madrigal. Desde entonces construyó una formación poco común, estudiando de manera directa con algunos de los nombres más importantes del tango contemporáneo.</p>
+        <p>Su bandoneón se escucha hoy en las milongas de Buenos Aires, en salas de grabación y en el aula, donde forma a la próxima generación de músicos.</p>
+      </div>
+    </div>
+    <div class="intro-banner">
+      <img src="fotos/2.jpeg" alt="Facundo Ortiz — Bandoneón">
+    </div>
+  </div>
+</section>
+
+<section class="timeline-section" id="trayectoria">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Trayectoria</h2>
+      <span class="eyebrow">Formación &amp; carrera</span>
+    </div>
+
+    <div class="timeline">
+
+      <div class="tl-item">
+        <span class="tl-year">12<small>años</small></span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Primeros acordes en <b>guitarra</b></h3>
+          <p>Se inicia en la guitarra con Antonio Bressi.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">14<small>años</small></span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Encuentra el <b>bandoneón</b></h3>
+          <p>Comienza a estudiar bandoneón con Marcos Madrigal.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2005</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Ingresa al <b>Conservatorio</b></h3>
+          <p>Cátedra de Pablo Mainetti.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2006</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Armonía y composición con <b>Rodolfo Mederos</b></h3>
+          <p>En paralelo, profundiza en orquestación y arreglos de tango para orquesta típica.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2008</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Debuta en las <b>milongas</b> de Buenos Aires</h3>
+          <p>Se presenta con el conjunto Atropellada en salones como Canning, La Catedral de Almagro y la Confitería Ideal, entre otros.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2010</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Perfeccionamiento con <b>Néstor Marconi</b></h3>
+          <p>Inicia estudios técnicos de perfeccionamiento sobre el instrumento.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2011</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Orquesta Escuela de Tango <b>Emilio Balcarce</b></h3>
+          <p>Ingresa a la orquesta bajo la dirección del maestro Víctor Lavallén.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2017</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Docente en <b>Academia Tango Club</b></h3>
+          <p>Se suma al staff docente de la institución.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="tl-year">2018</span>
+        <span class="tl-dot"></span>
+        <div class="tl-content">
+          <h3>Debut con la <b>Orquesta Típica de Rodolfo Mederos</b></h3>
+          <p>El mismo año graba en Estudio Fort junto al portugués Da Silva, y participa como primer bandoneón y arreglador del disco de la Academia Tango Club con la Orquesta Típica La Maroma.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="now-section" id="actualidad">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:0;">
+      <h2>Actualidad</h2>
+      <span class="eyebrow">Lo que hace hoy</span>
+    </div>
+    <div class="now-grid">
+      <div class="now-card">
+        <span class="eyebrow">Docencia</span>
+        <h3>Clases particulares de bandoneón</h3>
+        <p>Se dedica a la enseñanza de manera particular, transmitiendo el oficio que heredó de sus propios maestros.</p>
+      </div>
+      <div class="now-card">
+        <span class="eyebrow">Trío Juanatey</span>
+        <h3>Repertorio del Cuarteto Troilo–Grela</h3>
+        <p>Toca junto a Gabriel Tissera, revisitando uno de los repertorios más íntimos y reverenciados del tango.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="videos-section" id="escucha">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Escuchá</h2>
+      <span class="eyebrow">Video &amp; audio</span>
+    </div>
+    <div class="video-grid">
+      <a class="video-card" href="#" target="_blank" rel="noopener">
+        <div class="video-thumb"><div class="play-btn"></div></div>
+        <div class="video-meta">
+          <span class="eyebrow">Próximamente</span>
+          <h3>Video en vivo — a confirmar</h3>
+        </div>
+      </a>
+      <a class="video-card" href="#" target="_blank" rel="noopener">
+        <div class="video-thumb"><div class="play-btn"></div></div>
+        <div class="video-meta">
+          <span class="eyebrow">Próximamente</span>
+          <h3>Trío Juanatey — a confirmar</h3>
+        </div>
+      </a>
+      <a class="video-card" href="#" target="_blank" rel="noopener">
+        <div class="video-thumb"><div class="play-btn"></div></div>
+        <div class="video-meta">
+          <span class="eyebrow">Próximamente</span>
+          <h3>Orquesta La Maroma — a confirmar</h3>
+        </div>
+      </a>
+    </div>
+    <p class="videos-note">* Estas tres tarjetas están listas para tus links reales de YouTube — pasámelos y los dejo funcionando con miniatura, título y enlace correcto.</p>
+  </div>
+</section>
+
+<section class="contact-section" id="contacto">
+  <div class="wrap contact-inner">
+    <h2>Sumemos<br>un <em>tango</em> más</h2>
+    <p>Para milongas, eventos, grabaciones o clases particulares, escribile directamente.</p>
+    <div class="hero-actions">
+      <a href="https://wa.me/5491125824668" class="btn btn-solid" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>FACUNDO ORTIZ — BANDONEÓN</p>
+    <p>BUENOS AIRES, ARGENTINA</p>
+  </div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Slideshow logic
+    const slides = document.querySelectorAll('.slide-img');
+    let currentSlide = 0;
+    
+    if (slides.length > 0) {
+      setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+      }, 4500);
+    }
+
+    // Hamburger menu logic
+    const toggle = document.querySelector('.nav-toggle');
+    const linksContainer = document.querySelector('nav.links');
+    const links = document.querySelectorAll('nav.links a');
+    
+    if (toggle && linksContainer) {
+      toggle.addEventListener('click', () => {
+        toggle.classList.toggle('active');
+        linksContainer.classList.toggle('open');
+      });
+      
+      links.forEach(link => {
+        link.addEventListener('click', () => {
+          toggle.classList.remove('active');
+          linksContainer.classList.remove('open');
+        });
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
